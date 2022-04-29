@@ -1,6 +1,6 @@
-import NavBar from './NavBar';
+import NavBar from "./NavBar";
 
-import './styles.css';
+import "./styles.css";
 
 export default function App() {
 	return <NavBar />;

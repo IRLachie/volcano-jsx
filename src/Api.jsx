@@ -1,11 +1,14 @@
-const API_URL_BASE = 'http://sefdb02.qut.edu.au:3001';
+const API_URL_BASE = "http://sefdb02.qut.edu.au:3001";
 
-export default async function makeApiRequest(url, method, body, token) {
+const token = localStorage.getItem("token");
+
+export default async function makeApiRequest(url, method, body) {
 	const response = await fetch(API_URL_BASE + url, {
 		method,
 		body: body !== undefined ? body : null,
 		headers: {
-			accept: 'application/json',
+			accept: "application/json",
+			"Content-Type": "application/json",
 			authorization: `Bearer ${token}`,
 		},
 	});

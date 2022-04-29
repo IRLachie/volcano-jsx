@@ -15,13 +15,12 @@ import {
 	DrawerOverlay,
 	DrawerCloseButton,
 	DrawerHeader,
-	Input
+	Input,
 } from "@chakra-ui/react";
 import { HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
 import About from "./About";
 import bgimage1 from "./bgimage1.jpg";
 import Book from "./Book";
-import credentials from "./credentials.json";
 
 import "./styles.css";
 import makeApiRequest from "./Api";
@@ -36,29 +35,24 @@ const Home = () => (
 	/>
 );
 
+async function login(username, password) {
+	const token = await makeApiRequest("/user/login", "POST", JSON.stringify({ email: username, password: password }));
+	localStorage.setItem("token", token);
+}
+
+function onClick() {
+	const username = document.getElementById("username").value;
+	const password = document.getElementById("password").value;
+	console.log(username, password);
+
+	login(username, password);
+	console.log(localStorage.getItem("token"));
+}
+
 export default function NavBar() {
 	const isLoggedin = false;
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const btnRef = React.useRef();
-
-	const [keyData, setKeyData] = useState("");
-
-	const JWT = "";
-
-	console.log(credentials);
-
-	useEffect(() => {
-		fetch("http://sefdb02.qut.edu.au:3001/user/login", {
-			method: "POST",
-			body: JSON.stringify({
-				email: "mike@gmail.com",
-				password: "password"
-			}),
-			headers: {
-				accept: "application/json"
-			}
-		});
-	}, []);
 
 	return (
 		<div className="NavBar">
@@ -69,7 +63,7 @@ export default function NavBar() {
 					display: "flex",
 					position: "fixed",
 					flexGrow: "1",
-					backgroundColor: "rgba(247,247,247, 0.7)"
+					backgroundColor: "rgba(247,247,247, 0.7)",
 				}}
 			>
 				<HStack style={{ marginTop: "1em", marginLeft: "1em", marginBottom: "1em", flexGrow: "1" }}>
@@ -109,9 +103,15 @@ export default function NavBar() {
 								<DrawerCloseButton />
 								<DrawerHeader>Login</DrawerHeader>
 								<DrawerBody>
-									<Input placeholder="Username" variant="flushed" isRequired />
-									<Input placeholder="Password" variant="flushed" type={"password"} isRequired />
-									<Button style={{ marginTop: "1em" }} colorScheme="blue">
+									<Input id="username" placeholder="Username" variant="flushed" isRequired />
+									<Input
+										id="password"
+										placeholder="Password"
+										variant="flushed"
+										type={"password"}
+										isRequired
+									/>
+									<Button style={{ marginTop: "1em" }} colorScheme="blue" onClick={onClick}>
 										Login
 									</Button>
 								</DrawerBody>
