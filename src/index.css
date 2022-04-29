@@ -1,0 +1,25 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+		'Droid Sans', 'Helvetica Neue', sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body > #root > div.ui-provider {
+	flex-direction: column;
+}
+
+body > div.ui-provider {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.search-dialog .ui-dialog__content {
+	height: 100%;
+	margin-bottom: 0;
+}
