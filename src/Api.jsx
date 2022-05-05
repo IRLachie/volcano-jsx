@@ -11,9 +11,10 @@ export default async function makeApiRequest(url, method, body) {
 			"Content-Type": "application/json",
 			authorization: `Bearer ${token}`,
 		},
+		cache: "force-cache",
 	});
 
-	if (!response.ok) throw new Error(response.status.toString());
+	if (!response.ok) return response.status.toString();
 
 	return await response.json();
 }

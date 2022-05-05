@@ -1,14 +1,9 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable no-console */
-import React, { useEffect, useState } from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import {
-	Divider,
-	HStack,
 	Button,
-	Center,
 	Box,
-	useDisclosure,
 	Drawer,
 	DrawerContent,
 	DrawerBody,
@@ -16,43 +11,57 @@ import {
 	DrawerCloseButton,
 	DrawerHeader,
 	Input,
+	Popover,
+	PopoverTrigger,
+	PopoverContent,
+	PopoverBody,
+	PopoverCloseButton,
 } from "@chakra-ui/react";
-import { HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
+
 import About from "./About";
-import bgimage1 from "./bgimage1.jpg";
-import Book from "./Book";
+
+import HStackComp from "./components/HStackComp";
 
 import "./styles.css";
 import makeApiRequest from "./Api";
+import { PopoverHeader } from "reactstrap";
 
-const Home = () => (
-	<Box
-		minHeight="200vh"
-		backgroundImage={bgimage1}
-		backgroundRepeat="no-repeat"
-		backgroundSize="cover"
-		//width="100%"
-	/>
-);
-
-async function login(username, password) {
-	const token = await makeApiRequest("/user/login", "POST", JSON.stringify({ email: username, password: password }));
-	localStorage.setItem("token", token);
-}
-
-function onClick() {
-	const username = document.getElementById("username").value;
-	const password = document.getElementById("password").value;
-	console.log(username, password);
-
-	login(username, password);
-	console.log(localStorage.getItem("token"));
-}
+const Home = () => <p></p>;
 
 export default function NavBar() {
-	const isLoggedin = false;
-	const { isOpen, onOpen, onClose } = useDisclosure();
+	const [isLoggedin, setIsLoggedin] = useState(false);
+	const [isOpen, setIsOpen] = useState(false);
 	const btnRef = React.useRef();
+
+	const token = localStorage.getItem("token");
+
+	async function login(username, password) {
+		await makeApiRequest("/user/login", "POST", JSON.stringify({ email: username, password: password })).then(
+			token => {
+				localStorage.setItem("token", token.token);
+
+				if (token.token !== undefined || null) setIsLoggedin(true);
+			}
+		);
+	}
+
+	function onClick() {
+		const username = document.getElementById("username").value;
+		const password = document.getElementById("password").value;
+
+		login(username, password);
+
+		//Clear fields
+		document.getElementById("username").value = "";
+		document.getElementById("password").value = "";
+	}
+
+	function logout() {
+		localStorage.clear("token");
+
+		setIsLoggedin(false);
+		setIsOpen(false);
+	}
 
 	return (
 		<div className="NavBar">
@@ -66,25 +75,35 @@ export default function NavBar() {
 					backgroundColor: "rgba(247,247,247, 0.7)",
 				}}
 			>
-				<HStack style={{ marginTop: "1em", marginLeft: "1em", marginBottom: "1em", flexGrow: "1" }}>
-					<Link to={`/`}>
-						<Button leftIcon={<HamburgerIcon />} size="sm" colorScheme="teal" variant="outline">
-							Home
-						</Button>
-					</Link>
-					<Center height="20px">
-						<Divider orientation="vertical" />
-					</Center>
-					<Link to={`/About`}>
-						<Button leftIcon={<SearchIcon />} size="sm" colorScheme="teal" variant="outline" flexGrow="1">
-							Find HOT Flowing Volcanoes in YOUR Area
-						</Button>
-					</Link>
-				</HStack>
+				<HStackComp />
 				{isLoggedin ? (
-					<Button size="sm" colorScheme="teal" variant="link" marginRight="1em">
-						Log-Out
-					</Button>
+					<>
+						<Button size="sm" colorScheme="teal" variant="link" marginRight="1em" onClick={logout}>
+							Log-Out
+						</Button>
+						<Popover placement="bottom">
+							<PopoverTrigger>
+								<Button
+									size="sm"
+									colorScheme="teal"
+									variant="link"
+									marginRight="1em"
+									onClick={() => console.log(localStorage.getItem("token"))}
+								>
+									Obtain JWT
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent color="white" bg="blue.800" borderColor="blue.800">
+								<PopoverHeader>
+									<Box bg="tomato" p={2} color="white" rounded="lg">
+										<h1 style={{ marginLeft: "8em" }}>JWT KEY</h1>
+									</Box>
+								</PopoverHeader>
+								<PopoverCloseButton />
+								<PopoverBody>{token}</PopoverBody>
+							</PopoverContent>
+						</Popover>
+					</>
 				) : (
 					<>
 						<Button
@@ -93,31 +112,37 @@ export default function NavBar() {
 							colorScheme="teal"
 							variant="link"
 							marginRight="1em"
-							onClick={onOpen}
+							onClick={() => setIsOpen(true)}
 						>
 							Log-in
 						</Button>
-						<Drawer isOpen={isOpen} placement="right" onClose={onClose} finalFocusRef={btnRef}>
+						<Drawer
+							isOpen={isOpen}
+							placement="right"
+							onClose={() => setIsOpen(false)}
+							finalFocusRef={btnRef}
+						>
 							<DrawerOverlay />
 							<DrawerContent>
 								<DrawerCloseButton />
 								<DrawerHeader>Login</DrawerHeader>
 								<DrawerBody>
-									<Input id="username" placeholder="Username" variant="flushed" isRequired />
-									<Input
-										id="password"
-										placeholder="Password"
-										variant="flushed"
-										type={"password"}
-										isRequired
-									/>
+									<Input id="username" placeholder="Username" variant="flushed" />
+									<Input id="password" placeholder="Password" variant="flushed" type={"password"} />
+
 									<Button style={{ marginTop: "1em" }} colorScheme="blue" onClick={onClick}>
 										Login
 									</Button>
 								</DrawerBody>
 							</DrawerContent>
 						</Drawer>
-						<Button size="sm" colorScheme="teal" variant="link" marginRight="1em">
+						<Button
+							size="sm"
+							colorScheme="teal"
+							variant="link"
+							marginRight="1em"
+							onClick={() => console.log(localStorage.getItem("token"))}
+						>
 							Register
 						</Button>
 					</>

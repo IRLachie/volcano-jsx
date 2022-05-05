@@ -47,7 +47,7 @@
 		"react/no-multi-comp": ["error", { "ignoreStateless": true }],
 		"react/no-unstable-nested-components": "error",
 		"react/jsx-no-useless-fragment": "error",
-		"react/jsx-max-depth": ["error", { "max": 5 }],
+		"react/jsx-max-depth": ["error", { "max": 9 }],
 		"react/prop-types": "off",
 
 		"@typescript-eslint/explicit-module-boundary-types": "off",
