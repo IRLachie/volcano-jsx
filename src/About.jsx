@@ -1,4 +1,7 @@
 /* eslint-disable no-console */
+//TODO: Have a setloggedin feature in localstorage so it can be called when doing the volcano id graph
+
+//TODO: Include Register
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import "./styles.css";
 import { AgGridReact } from "ag-grid-react";

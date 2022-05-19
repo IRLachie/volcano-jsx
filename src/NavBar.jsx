@@ -16,6 +16,7 @@ import {
 	PopoverContent,
 	PopoverBody,
 	PopoverCloseButton,
+	useToast,
 } from "@chakra-ui/react";
 
 import About from "./About";
@@ -31,8 +32,9 @@ const Home = () => <p></p>;
 export default function NavBar() {
 	const [isLoggedin, setIsLoggedin] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
+	const [isOpenR, setIsOpenR] = useState(false);
 	const btnRef = React.useRef();
-
+	const toast = useToast();
 	const token = localStorage.getItem("token");
 
 	async function login(username, password) {
@@ -43,6 +45,48 @@ export default function NavBar() {
 				if (token.token !== undefined || null) setIsLoggedin(true);
 			}
 		);
+	}
+
+	async function register(username, password) {
+		await makeApiRequest("/user/register", "POST", JSON.stringify({ email: username, password: password })).then(
+			message => {
+				if (message === "409") {
+					toast({
+						title: message,
+						description: "User already exists...",
+						status: "error",
+						duration: 2000,
+						isClosable: true,
+					});
+				} else if (message === "400") {
+					toast({
+						title: message,
+						description: "Request body incomplete, both email and password are required...",
+						status: "error",
+						duration: 2000,
+						isClosable: true,
+					});
+				} else {
+					toast({
+						title: "Success!",
+						description: "User created...",
+						status: "success",
+						duration: 2000,
+						isClosable: true,
+					});
+					setIsOpenR(false);
+				}
+			}
+		);
+	}
+
+	function onRegister() {
+		const username = document.getElementById("usernameR").value;
+		const password = document.getElementById("passwordR").value;
+		register(username, password);
+		//Clear fields
+		document.getElementById("usernameR").value = "";
+		document.getElementById("passwordR").value = "";
 	}
 
 	function onClick() {
@@ -141,10 +185,30 @@ export default function NavBar() {
 							colorScheme="teal"
 							variant="link"
 							marginRight="1em"
-							onClick={() => console.log(localStorage.getItem("token"))}
+							onClick={() => setIsOpenR(true)}
 						>
 							Register
 						</Button>
+						<Drawer
+							isOpen={isOpenR}
+							placement="right"
+							onClose={() => setIsOpenR(false)}
+							finalFocusRef={btnRef}
+						>
+							<DrawerOverlay />
+							<DrawerContent>
+								<DrawerCloseButton />
+								<DrawerHeader>Register</DrawerHeader>
+								<DrawerBody>
+									<Input id="usernameR" placeholder="Username" variant="flushed" />
+									<Input id="passwordR" placeholder="Password" variant="flushed" type={"password"} />
+
+									<Button style={{ marginTop: "1em" }} colorScheme="blue" onClick={onRegister}>
+										Register
+									</Button>
+								</DrawerBody>
+							</DrawerContent>
+						</Drawer>
 					</>
 				)}
 			</Box>
