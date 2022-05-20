@@ -25,6 +25,9 @@ import {
 import makeApiRequest from "./Api";
 import { MapContainer, TileLayer, Popup, Marker } from "react-leaflet";
 
+import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS } from "chart.js/auto";
+
 export default function About() {
 	const [rowData, setRowData] = useState([]);
 	const [volcanoData, setVolcanoData] = useState([]);
@@ -199,7 +202,28 @@ export default function About() {
 												/>
 												<Marker position={[volcanoData.latitude, volcanoData.longitude]}>
 													<Popup>
-														A pretty CSS3 popup. <br /> Easily customizable.
+														{/* 5km:
+															{volcanoData.population_5km !== 0
+																? volcanoData.population_5km
+																: "N/A"}
+															<br />
+															10km:
+															{volcanoData.population_10km !== 0
+																? volcanoData.population_10km
+																: "N/A"}
+															<br />
+															30km:
+															{volcanoData.population_30km !== 0
+																? volcanoData.population_30km
+																: "N/A"}
+															<br />
+															100km:
+															{volcanoData.population_100km !== 0
+																? volcanoData.population_100km
+																: "N/A"} */}
+														{volcanoData.name}
+														<br />
+														{volcanoData.country}
 													</Popup>
 												</Marker>
 											</MapContainer>
@@ -208,7 +232,28 @@ export default function About() {
 										)}
 									</Flex>
 								</ModalBody>
-								<ModalFooter></ModalFooter>
+								<ModalFooter>
+									{loggedin ? (
+										<p>.</p>
+									) : (
+										<Bar
+											data={{
+												labels: ["5km", "10km", "30km", "100km"],
+												datasets: [
+													{
+														label: "Population",
+														data: [
+															volcanoData.population_5km,
+															volcanoData.population_10km,
+															volcanoData.population_30km,
+															volcanoData.population_100km,
+														],
+													},
+												],
+											}}
+										/>
+									)}
+								</ModalFooter>
 							</ModalContent>
 						</Modal>
 					</>
