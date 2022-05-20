@@ -35,14 +35,18 @@ export default function NavBar() {
 	const [isOpenR, setIsOpenR] = useState(false);
 	const btnRef = React.useRef();
 	const toast = useToast();
-	const token = localStorage.getItem("token");
+	const token = localStorage.getItem("token", false);
 
 	async function login(username, password) {
 		await makeApiRequest("/user/login", "POST", JSON.stringify({ email: username, password: password })).then(
 			token => {
 				localStorage.setItem("token", token.token);
 
-				if (token.token !== undefined || null) setIsLoggedin(true);
+				if (token.token !== undefined || null) {
+					setIsLoggedin(true);
+					localStorage.clear("loggedin");
+					localStorage.setItem("loggedin", "true");
+				}
 			}
 		);
 	}
@@ -102,6 +106,7 @@ export default function NavBar() {
 
 	function logout() {
 		localStorage.clear("token");
+		localStorage.setItem("loggedin", "false");
 
 		setIsLoggedin(false);
 		setIsOpen(false);

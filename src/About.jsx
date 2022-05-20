@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-console */
 //TODO: Have a setloggedin feature in localstorage so it can be called when doing the volcano id graph
 
@@ -29,7 +30,7 @@ import { Bar } from "react-chartjs-2";
 import { Chart as ChartJS } from "chart.js/auto";
 
 export default function About() {
-	const [rowData, setRowData] = useState([]);
+	const [rowData, setRowData] = useState([{}]);
 	const [volcanoData, setVolcanoData] = useState([]);
 	const [country, setCountry] = useState("");
 	const [within, setWithin] = useState("");
@@ -38,6 +39,12 @@ export default function About() {
 	const [isloading, setLoading] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const gridRef = useRef();
+	const [loggedin, setLoggedin] = useState(false);
+
+	useEffect(() => {
+		const isloggedin = localStorage.getItem("loggedin");
+		setLoggedin(isloggedin);
+	}, [localStorage.getItem("loggedin")]);
 
 	const columns = [
 		{ headerName: "Name", field: "name", sortable: true, filter: true },
@@ -64,6 +71,7 @@ export default function About() {
 
 	useEffect(() => {
 		setLoading(true);
+
 		makeApiRequest("/volcanoes?country=" + country + "&populatedWithin=" + within, "GET")
 			.then(volcanoes => setRowData(volcanoes))
 			.catch(err => {
@@ -175,7 +183,7 @@ export default function About() {
 								<ModalCloseButton />
 								<ModalBody>
 									<Flex>
-										<Box w="20em" h="30em" bg="lightgrey" rounded="md">
+										<Box w="20em" h="20em" bg="lightgrey" rounded="md">
 											Country: {volcanoData.country}
 											<br />
 											Region: {volcanoData.region}
@@ -194,7 +202,7 @@ export default function About() {
 												zoom={1}
 												scrollWheelZoom={true}
 												minZoom={1}
-												style={{ marginLeft: "2em", width: "60em", height: "40em" }}
+												style={{ marginLeft: "2em", width: "60em", height: "27em" }}
 											>
 												<TileLayer
 													attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -232,10 +240,8 @@ export default function About() {
 										)}
 									</Flex>
 								</ModalBody>
-								<ModalFooter>
-									{loggedin ? (
-										<p>.</p>
-									) : (
+								{loggedin === "true" ? (
+									<div style={{ marginLeft: "2em", marginBottom: "2em" }}>
 										<Bar
 											data={{
 												labels: ["5km", "10km", "30km", "100km"],
@@ -252,8 +258,10 @@ export default function About() {
 												],
 											}}
 										/>
-									)}
-								</ModalFooter>
+									</div>
+								) : (
+									(console.log(loggedin), (<p>Login to see chart data...</p>))
+								)}
 							</ModalContent>
 						</Modal>
 					</>
