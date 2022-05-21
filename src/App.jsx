@@ -5,6 +5,8 @@ import bgimage1 from "./bgimage1.jpg";
 import "./styles.css";
 
 export default function App() {
+	localStorage.setItem("loggedin", "false");
+
 	return (
 		<>
 			<NavBar />

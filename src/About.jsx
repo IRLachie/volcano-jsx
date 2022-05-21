@@ -1,8 +1,5 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable no-console */
-//TODO: Have a setloggedin feature in localstorage so it can be called when doing the volcano id graph
-
-//TODO: Include Register
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import "./styles.css";
 import { AgGridReact } from "ag-grid-react";
@@ -23,23 +20,23 @@ import {
 	Flex,
 	Box,
 } from "@chakra-ui/react";
-import makeApiRequest from "./Api";
+import makeApiRequestLoggedin, { makeApiRequest } from "./Api";
 import { MapContainer, TileLayer, Popup, Marker } from "react-leaflet";
 
-import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import { Chart as ChartJS } from "chart.js/auto";
 
 export default function About() {
-	const [rowData, setRowData] = useState([{}]);
-	const [volcanoData, setVolcanoData] = useState([]);
-	const [country, setCountry] = useState("");
+	const [rowData, setRowData] = useState([""]);
+	const [volcanoData, setVolcanoData] = useState([""]);
+	const [country, setCountry] = useState("Algeria");
 	const [within, setWithin] = useState("");
-	const [id, setId] = useState("24");
+	const [id, setId] = useState("90");
 	const [countryData, setCountryData] = useState([]);
 	const [isloading, setLoading] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const gridRef = useRef();
-	const [loggedin, setLoggedin] = useState(false);
+	const [loggedin, setLoggedin] = useState();
 
 	useEffect(() => {
 		const isloggedin = localStorage.getItem("loggedin");
@@ -55,32 +52,45 @@ export default function About() {
 	];
 
 	useEffect(() => {
-		makeApiRequest("/countries", "GET").then(countries => setCountryData(countries));
+		setRowData("");
+		makeApiRequest("/countries", "GET").then(countries => setCountryData(JSON.parse(JSON.stringify(countries))));
 	}, []);
 
 	useEffect(() => {
-		makeApiRequest(`/volcano/${id}`, "GET")
-			.then(resp => setVolcanoData(resp))
-			.catch(err => {
-				Error(err);
-			})
-			.finally(() => {
-				setLoading();
-			});
-	}, [id]);
+		if (loggedin === "true") {
+			console.log("You are logged in");
+			makeApiRequestLoggedin(`/volcano/${id}`, "GET")
+				.then(resp => setVolcanoData(JSON.parse(JSON.stringify(resp))))
+				.catch(err => {
+					Error(err);
+				})
+				.finally(() => {
+					setLoading(false);
+				});
+		} else if (loggedin === "false") {
+			console.log("You arent logged in");
+			makeApiRequest(`/volcano/${id}`, "GET")
+				.then(resp => setVolcanoData(JSON.parse(JSON.stringify(resp))))
+				.catch(err => {
+					Error(err);
+				})
+				.finally(() => {
+					setLoading(false);
+				});
+		}
+	}, [id, loggedin]);
 
 	useEffect(() => {
 		setLoading(true);
-
 		makeApiRequest("/volcanoes?country=" + country + "&populatedWithin=" + within, "GET")
-			.then(volcanoes => setRowData(volcanoes))
+			.then(volcanoes => setRowData(JSON.parse(JSON.stringify(volcanoes))))
 			.catch(err => {
 				Error(err);
 			})
 			.finally(() => {
-				setLoading();
+				setLoading(false);
 			});
-	}, [country, within]);
+	}, [country, within, loggedin]);
 
 	const onHandleClick = useCallback(() => {
 		const selectedNode = gridRef.current.api.getSelectedNodes();
@@ -91,6 +101,11 @@ export default function About() {
 	const getRowId = useCallback(params => {
 		return params.data.id;
 	});
+
+	const latlng = [
+		volcanoData.latitude !== undefined ? volcanoData.latitude : 0,
+		volcanoData.longitude !== undefined ? volcanoData.longitude : 0,
+	];
 
 	return (
 		<div
@@ -183,18 +198,20 @@ export default function About() {
 								<ModalCloseButton />
 								<ModalBody>
 									<Flex>
-										<Box w="20em" h="20em" bg="lightgrey" rounded="md">
-											Country: {volcanoData.country}
-											<br />
-											Region: {volcanoData.region}
-											<br />
-											Subregion: {volcanoData.subregion}
-											<br />
-											Last Eruption: {volcanoData.last_eruption}
-											<br />
-											Summit: {volcanoData.summit}
-											<br />
-											Elevation: {volcanoData.elevation}
+										<Box w="20em" h="20em" bg="#f7f7f7" rounded="md">
+											<div style={{ marginLeft: "1em", marginTop: "1em" }}>
+												Country: {volcanoData.country}
+												<br />
+												Region: {volcanoData.region}
+												<br />
+												Subregion: {volcanoData.subregion}
+												<br />
+												Last Eruption: {volcanoData.last_eruption}
+												<br />
+												Summit: {volcanoData.summit}
+												<br />
+												Elevation: {volcanoData.elevation}
+											</div>
 										</Box>
 										{!isloading ? (
 											<MapContainer
@@ -208,27 +225,8 @@ export default function About() {
 													attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 													url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 												/>
-												<Marker position={[volcanoData.latitude, volcanoData.longitude]}>
+												<Marker position={latlng !== undefined ? latlng : [0, 0]}>
 													<Popup>
-														{/* 5km:
-															{volcanoData.population_5km !== 0
-																? volcanoData.population_5km
-																: "N/A"}
-															<br />
-															10km:
-															{volcanoData.population_10km !== 0
-																? volcanoData.population_10km
-																: "N/A"}
-															<br />
-															30km:
-															{volcanoData.population_30km !== 0
-																? volcanoData.population_30km
-																: "N/A"}
-															<br />
-															100km:
-															{volcanoData.population_100km !== 0
-																? volcanoData.population_100km
-																: "N/A"} */}
 														{volcanoData.name}
 														<br />
 														{volcanoData.country}
@@ -242,7 +240,7 @@ export default function About() {
 								</ModalBody>
 								{loggedin === "true" ? (
 									<div style={{ marginLeft: "2em", marginBottom: "2em" }}>
-										<Bar
+										<Line
 											data={{
 												labels: ["5km", "10km", "30km", "100km"],
 												datasets: [
@@ -260,7 +258,9 @@ export default function About() {
 										/>
 									</div>
 								) : (
-									(console.log(loggedin), (<p>Login to see chart data...</p>))
+									<p style={{ marginLeft: "2em", marginBottom: "1em", fontWeight: "bold" }}>
+										Login to see chart data...
+									</p>
 								)}
 							</ModalContent>
 						</Modal>

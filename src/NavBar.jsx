@@ -11,12 +11,8 @@ import {
 	DrawerCloseButton,
 	DrawerHeader,
 	Input,
-	Popover,
-	PopoverTrigger,
-	PopoverContent,
-	PopoverBody,
-	PopoverCloseButton,
 	useToast,
+	Center,
 } from "@chakra-ui/react";
 
 import About from "./About";
@@ -25,9 +21,25 @@ import HStackComp from "./components/HStackComp";
 
 import "./styles.css";
 import makeApiRequest from "./Api";
-import { PopoverHeader } from "reactstrap";
 
-const Home = () => <p></p>;
+const Home = () => (
+	<Center>
+		<div style={{ position: "absolute", marginTop: "50%" }}>
+			<h1
+				style={{
+					fontWeight: "bold",
+					fontSize: "60px",
+					color: "rgba(247,247,247, 0.3)",
+					fontFamily: "monospace",
+					fontStyle: "oblique",
+					userSelect: "none",
+				}}
+			>
+				Volcano.jsx
+			</h1>
+		</div>
+	</Center>
+);
 
 export default function NavBar() {
 	const [isLoggedin, setIsLoggedin] = useState(false);
@@ -35,20 +47,33 @@ export default function NavBar() {
 	const [isOpenR, setIsOpenR] = useState(false);
 	const btnRef = React.useRef();
 	const toast = useToast();
-	const token = localStorage.getItem("token", false);
+	const token = localStorage.getItem("token");
 
-	async function login(username, password) {
-		await makeApiRequest("/user/login", "POST", JSON.stringify({ email: username, password: password })).then(
-			token => {
-				localStorage.setItem("token", token.token);
+	function login(username, password) {
+		makeApiRequest("/user/login", "POST", JSON.stringify({ email: username, password: password })).then(token => {
+			localStorage.setItem("token", token.token);
 
-				if (token.token !== undefined || null) {
-					setIsLoggedin(true);
-					localStorage.clear("loggedin");
-					localStorage.setItem("loggedin", "true");
-				}
+			if (token.token !== undefined || null) {
+				setIsLoggedin(true);
+				localStorage.setItem("loggedin", "true");
+			} else if (token === "401") {
+				toast({
+					title: token,
+					description: "Incorrect email or password ...",
+					status: "error",
+					duration: 2000,
+					isClosable: true,
+				});
+			} else {
+				toast({
+					title: token,
+					description: "Request body incomplete, both email and password are required ...",
+					status: "error",
+					duration: 2000,
+					isClosable: true,
+				});
 			}
-		);
+		});
 	}
 
 	async function register(username, password) {
@@ -130,28 +155,22 @@ export default function NavBar() {
 						<Button size="sm" colorScheme="teal" variant="link" marginRight="1em" onClick={logout}>
 							Log-Out
 						</Button>
-						<Popover placement="bottom">
-							<PopoverTrigger>
-								<Button
-									size="sm"
-									colorScheme="teal"
-									variant="link"
-									marginRight="1em"
-									onClick={() => console.log(localStorage.getItem("token"))}
-								>
-									Obtain JWT
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent color="white" bg="blue.800" borderColor="blue.800">
-								<PopoverHeader>
-									<Box bg="tomato" p={2} color="white" rounded="lg">
-										<h1 style={{ marginLeft: "8em" }}>JWT KEY</h1>
-									</Box>
-								</PopoverHeader>
-								<PopoverCloseButton />
-								<PopoverBody>{token}</PopoverBody>
-							</PopoverContent>
-						</Popover>
+						<Button
+							size="sm"
+							colorScheme="teal"
+							variant="link"
+							marginRight="1em"
+							onClick={() => {
+								toast({
+									description: token,
+									status: "info",
+									duration: 2000,
+									isClosable: true,
+								});
+							}}
+						>
+							Obtain JWT
+						</Button>
 					</>
 				) : (
 					<>
